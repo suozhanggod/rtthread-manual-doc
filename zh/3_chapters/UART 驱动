@@ -1,20 +1,42 @@
 
 UART 驱动
 
-nn 简介
+简介：通用异步收发传输器（Universal Asynchronous Receiver/Transmitter)，通常称作UART，是一种异步收发传输器。
 
-描述 nn 是一个什么样的外设，同时一般在RT-Thread中处于什么样的位置（例如EMAC驱动，向上是要提供给lwIP协议栈使用，和etx/erx任务结合起来等等）。nn 驱动需要实现的接口包括哪些。
+描述： 串口驱动是移植RTT系统首先要写的驱动，因为输出一句 “hello，world!”，前提就是串口能工作。
 
-nn 驱动接口
+UART 驱动需要开发工程师实现的每个API接口如下：
 
-描述 nn 驱动需要开发工程师实现的每个API接口是什么样的。
+注：这里只是一份代码框架，并不是一份具体代码。
 
-nn 驱动的代码框架
-
-注：这里只需要给出一份代码框架，并不是一份具体代码。
-
-struct device_nn
+/*
+ * UART Initiation
+ */
+int rt_hw_uart_init(void)
 {
-};
+    struct rt_serial_device *serial;
+    struct device_uart      *uart;
+    struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
 
-...等
+    {
+        static struct rt_serial_device  serial1;
+        static struct device_uart       uart1;
+
+        serial  = &serial1;
+        uart    = &uart1;
+
+        serial->ops              = &_uart_ops;
+        serial->config           = config;
+        serial->config.baud_rate = 115200;
+
+        uart->hw_base   = 0; // UART0_BASE;
+        uart->irqno     = 0; // IRQ_UART0;
+
+        rt_hw_serial_register(serial,
+                              "uart",
+                              RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+                              uart);
+    }
+
+    return 0;
+}
